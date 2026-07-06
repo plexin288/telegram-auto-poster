@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from app.config import Config
+from .config import Config
 
 engine = create_engine(
     Config.DATABASE_URL,
@@ -27,6 +27,6 @@ def get_db():
 
 
 def init_db():
-    from app.models import Post
+    from .models import Post
 
     Base.metadata.create_all(bind=engine)
