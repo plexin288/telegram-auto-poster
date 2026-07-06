@@ -9,7 +9,7 @@ from sqlalchemy import (
     DateTime
 )
 
-from app.database import Base
+from .database import Base
 
 
 class Post(Base):
