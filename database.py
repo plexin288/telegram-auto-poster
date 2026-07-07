@@ -1,32 +1,28 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
-
-from .config import Config
-
-engine = create_engine(
-    Config.DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
-
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
-
-Base = declarative_base()
+import sqlite3
+from config import Config
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_connection():
+    conn = sqlite3.connect(Config.DATABASE_NAME)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 
 def init_db():
-    from .models import Post
+    conn = get_connection()
+    cursor = conn.cursor()
 
-    Base.metadata.create_all(bind=engine)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT NOT NULL,
+            text TEXT,
+            file_path TEXT,
+            schedule_time TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    conn.commit()
+    conn.close()
