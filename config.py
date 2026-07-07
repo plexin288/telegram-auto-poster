@@ -13,7 +13,7 @@ class Config:
         "Asia/Jakarta"
     )
 
-    DATABASE_URL = os.getenv(
-        "DATABASE_URL",
-        "sqlite:///database/poster.db"
+    DATABASE_NAME = os.getenv(
+        "DATABASE_NAME",
+        "database.db"
     )
