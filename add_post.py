@@ -1,19 +1,18 @@
 from datetime import datetime
 
-from database import SessionLocal, init_db
-from models import Post
+from database import init_db
+from models import add_post
 
 
 def main():
-    init_db()
 
-    db = SessionLocal()
+    init_db()
 
     print("=" * 40)
     print("TELEGRAM AUTO POSTER")
     print("=" * 40)
 
-    print("\nPilih jenis postingan:")
+    print("\nPilih jenis postingan")
     print("1. Text")
     print("2. Photo")
     print("3. Video")
@@ -36,30 +35,29 @@ def main():
         print("Pilihan tidak valid.")
         return
 
-    caption = input("Caption: ")
+    text = input("Caption / Text: ").strip()
 
-    schedule = input(
+    schedule_time = input(
         "Jadwal (YYYY-MM-DD HH:MM:SS): "
-    )
+    ).strip()
 
-    scheduled_at = datetime.strptime(
-        schedule,
-        "%Y-%m-%d %H:%M:%S"
-    )
+    try:
+        datetime.strptime(
+            schedule_time,
+            "%Y-%m-%d %H:%M:%S"
+        )
+    except ValueError:
+        print("Format tanggal salah.")
+        return
 
-    post = Post(
-        type=post_type,
+    add_post(
+        post_type=post_type,
+        text=text,
         file_path=file_path,
-        caption=caption,
-        scheduled_at=scheduled_at
+        schedule_time=schedule_time
     )
 
-    db.add(post)
-    db.commit()
-
-    print("\n✅ Post berhasil ditambahkan!")
-
-    db.close()
+    print("\n✅ Post berhasil ditambahkan.")
 
 
 if __name__ == "__main__":
