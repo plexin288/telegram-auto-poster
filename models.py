@@ -1,54 +1,100 @@
-from datetime import datetime
-
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Text,
-    Boolean,
-    DateTime
-)
-
-from .database import Base
+from database import get_connection
 
 
-class Post(Base):
-    __tablename__ = "posts"
+def add_post(post_type, text, file_path, schedule_time):
+    conn = get_connection()
+    cursor = conn.cursor()
 
-    id = Column(
-        Integer,
-        primary_key=True,
-        index=True
-    )
+    cursor.execute("""
+        INSERT INTO posts
+        (type, text, file_path, schedule_time)
+        VALUES (?, ?, ?, ?)
+    """, (
+        post_type,
+        text,
+        file_path,
+        schedule_time
+    ))
 
-    type = Column(
-        String(20),
-        nullable=False
-    )
+    conn.commit()
+    conn.close()
 
-    file_path = Column(
-        String(255),
-        nullable=True
-    )
 
-    caption = Column(
-        Text,
-        nullable=True
-    )
+def get_pending_posts(current_time):
+    conn = get_connection()
+    cursor = conn.cursor()
 
-    scheduled_at = Column(
-        DateTime,
-        nullable=False
-    )
+    cursor.execute("""
+        SELECT *
+        FROM posts
+        WHERE status = 'pending'
+        AND schedule_time <= ?
+        ORDER BY schedule_time ASC
+    """, (current_time,))
 
-    is_sent = Column(
-        Boolean,
-        default=False,
-        nullable=False
-    )
+    posts = cursor.fetchall()
 
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        nullable=False
-    )
+    conn.close()
+
+    return posts
+
+
+def mark_sent(post_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE posts
+        SET status = 'sent'
+        WHERE id = ?
+    """, (post_id,))
+
+    conn.commit()
+    conn.close()
+
+
+def delete_post(post_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM posts
+        WHERE id = ?
+    """, (post_id,))
+
+    conn.commit()
+    conn.close()
+
+
+def get_post(post_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM posts
+        WHERE id = ?
+    """, (post_id,))
+
+    post = cursor.fetchone()
+
+    conn.close()
+
+    return post
+
+
+def get_all_posts():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM posts
+        ORDER BY schedule_time ASC
+    """)
+
+    posts = cursor.fetchall()
+
+    conn.close()
+
+    return posts
