@@ -1,7 +1,10 @@
 from datetime import datetime
 
-from database import SessionLocal
-from models import Post
+from models import (
+    get_pending_posts,
+    mark_sent
+)
+
 from bot import TelegramBot
 
 
@@ -12,45 +15,33 @@ class PostService:
 
     async def process_posts(self):
 
-        db = SessionLocal()
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        try:
+        posts = get_pending_posts(now)
 
-            posts = (
-                db.query(Post)
-                .filter(Post.is_sent == False)
-                .all()
-            )
+        for post in posts:
 
-            now = datetime.now()
+            if post["type"] == "text":
 
-            for post in posts:
+                await self.bot.send_text(
+                    post["text"]
+                )
 
-                if post.scheduled_at <= now:
+            elif post["type"] == "photo":
 
-                    if post.type == "text":
+                await self.bot.send_photo(
+                    post["file_path"],
+                    post["text"]
+                )
 
-                        await self.bot.send_text(
-                            post.caption
-                        )
+            elif post["type"] == "video":
 
-                    elif post.type == "photo":
+                await self.bot.send_video(
+                    post["file_path"],
+                    post["text"]
+                )
 
-                        await self.bot.send_photo(
-                            post.file_path,
-                            post.caption
-                        )
+            mark_sent(post["id"])
 
-                    elif post.type == "video":
-
-                        await self.bot.send_video(
-                            post.file_path,
-                            post.caption
-                        )
-
-                    post.is_sent = True
-
-            db.commit()
-
-        finally:
-            db.close()
+        if posts:
+            print(f"✅ {len(posts)} post berhasil dikirim.")
