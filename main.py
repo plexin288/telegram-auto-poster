@@ -5,17 +5,17 @@ from scheduler import run_scheduler
 
 
 async def main():
-
     print("=" * 40)
     print("🚀 Telegram Auto Poster Started")
     print("=" * 40)
 
+    # Inisialisasi database
     init_db()
 
+    # Jalankan scheduler SATU KALI
     await run_scheduler()
 
-    while True:
-        await asyncio.sleep(60)
+    print("✅ Scheduler selesai.")
 
 
 if __name__ == "__main__":
